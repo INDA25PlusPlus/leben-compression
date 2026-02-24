@@ -8,4 +8,6 @@ add_executable(leben_compression src/main.c
         src/bitmap.c
         src/bitmap.h
         src/huffman.c
-        src/huffman.h)
+        src/huffman.h
+        src/io.c
+        src/io.h)

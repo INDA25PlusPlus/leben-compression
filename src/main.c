@@ -1,4 +1,6 @@
-#include <stdbool.h>
+#include "huffman.h"
+#include "io.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -47,45 +49,49 @@ int assert_different_files(FILE *a, FILE *b) {
 }
 
 int main(int argc, char const *argv[]) {
-    if (argc != 4 || (
-            strcmp(argv[1], "encode") != 0 &&
-            strcmp(argv[1], "decode") != 0))
-    {
+    if (argc != 4 ||
+        (strcmp(argv[1], "encode") != 0 && strcmp(argv[1], "decode") != 0)) {
         err_invalid_usage();
     }
 
-    bool is_decode_mode = strcmp(argv[1], "decode") != 0;
-
-    FILE *inp = fopen(argv[2], "r");
-    if (inp == NULL) {
+    FILE *inp_file = fopen(argv[2], "r");
+    if (inp_file == NULL) {
         err_failed_to_open(argv[2]);
     }
 
-    FILE *outp = fopen(argv[3], "w");
-    if (outp == NULL) {
+    FILE *outp_file = fopen(argv[3], "w");
+    if (outp_file == NULL) {
         err_failed_to_open(argv[3]);
     }
 
-    int different_files = assert_different_files(inp, outp);
+    int different_files = assert_different_files(inp_file, outp_file);
     if (different_files == 1) {
         err_failed_to_stat(argv[2]);
     } else if (different_files == 2) {
         err_failed_to_stat(argv[3]);
     }
 
-    if (is_decode_mode) {
-        // todo
+    FileBuffer inp_buffer;
+    FileBuffer outp_buffer;
+    file_buffer_init(&inp_buffer, inp_file);
+    file_buffer_init(&outp_buffer, outp_file);
+
+    if (strcmp(argv[1], "encode") == 0) {
+        // todo encode
         exit(1);
     } else {
-        // todo
+        // todo decode
         exit(1);
     }
 
-    if (fclose(inp)) {
+    file_buffer_deinit(&inp_buffer);
+    file_buffer_deinit(&outp_buffer);
+
+    if (fclose(inp_file)) {
         err_failed_to_close(argv[2]);
     }
 
-    if (fclose(outp)) {
+    if (fclose(outp_file)) {
         err_failed_to_close(argv[3]);
     }
 
