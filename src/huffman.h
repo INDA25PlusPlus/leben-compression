@@ -3,7 +3,8 @@
 //
 
 #pragma once
-#include <stddef.h>
+
+#include "io.h"
 
 typedef enum {
     LEAF,
@@ -23,6 +24,6 @@ struct HuffmanTreeNode {
     };
 };
 
-HuffmanTreeNode *huffman_tree_create(char *buf, size_t len);
+HuffmanTreeNode *huffman_tree_create(FileBuffer const *file_buffer);
 
 void huffman_tree_destroy(HuffmanTreeNode *tree);

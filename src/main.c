@@ -77,6 +77,8 @@ int main(int argc, char const *argv[]) {
     file_buffer_init(&outp_buffer, outp_file);
 
     if (strcmp(argv[1], "encode") == 0) {
+        HuffmanTreeNode *huffman_tree = huffman_tree_create(&inp_buffer);
+        huffman_tree_destroy(huffman_tree);
         // todo encode
         exit(1);
     } else {
