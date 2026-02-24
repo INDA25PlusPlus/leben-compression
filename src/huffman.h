@@ -13,7 +13,7 @@ typedef enum {
 
 typedef struct HuffmanTreeNode HuffmanTreeNode;
 struct HuffmanTreeNode {
-    unsigned priority;
+    size_t freq;
     HuffmanNodeType node_type;
     union {
         char character;
@@ -24,6 +24,15 @@ struct HuffmanTreeNode {
     };
 };
 
-HuffmanTreeNode *huffman_tree_create(FileBuffer const *file_buffer);
+typedef struct {
+    HuffmanTreeNode node_arena[256];
+    HuffmanTreeNode *queue[256];
+    size_t len;
+} HuffmanFreqQueue;
 
-void huffman_tree_destroy(HuffmanTreeNode *tree);
+HuffmanFreqQueue *huffman_freq_queue_create();
+
+void huffman_freq_queue_destroy(HuffmanFreqQueue *hfq);
+
+void huffman_freq_queue_init(
+    HuffmanFreqQueue *hfq, FileBuffer const *file_buffer);

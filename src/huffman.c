@@ -4,75 +4,54 @@
 
 #include "huffman.h"
 
-#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 
-typedef struct {
-    uint8_t ch;
-    size_t freq;
-} HuffmanFreqTableEntry;
-
-typedef struct {
-    HuffmanFreqTableEntry *entries;
-} HuffmanFreqTable;
-
-typedef struct {
-    HuffmanFreqTableEntry *entries;
-} HuffmanSortedFreqTable;
-
-void huffman_freq_table_init(HuffmanFreqTable *hft) {
-    hft->entries = malloc(256 * sizeof(HuffmanFreqTableEntry));
-    for (int i = 0; i < 256; i++) {
-        hft->entries[i].ch = i;
-        hft->entries[i].freq = 0;
+HuffmanFreqQueue *huffman_freq_queue_create() {
+    HuffmanFreqQueue *hfq = malloc(sizeof(HuffmanFreqQueue));
+    if (hfq == NULL) {
+        return NULL;
     }
+    for (int i = 0; i < 256; ++i) {
+        hfq->queue[i] = &hfq->node_arena[i];
+        hfq->node_arena[i].freq = 0;
+        hfq->node_arena[i].node_type = LEAF;
+        hfq->node_arena[i].character = i;
+    }
+    hfq->len = 256;
+    return hfq;
 }
 
-void huffman_freq_table_deinit(HuffmanFreqTable *hft) {
-    free(hft->entries);
-    hft->entries = NULL;
+void huffman_freq_queue_destroy(HuffmanFreqQueue *hfq) {
+    for (int i = 0; i < 256; ++i) {
+        hfq->queue[i] = NULL;
+    }
+    free(hfq);
 }
 
-void huffman_freq_table_inc(HuffmanFreqTable *hft, uint8_t ch) {
-    hft->entries[ch].freq++;
+int huffman_freq_queue_sort_fn(void const *a, void const *b) {
+    return (int) (*(HuffmanTreeNode *const *) b)->freq -
+           (int) (*(HuffmanTreeNode *const *) a)->freq;
 }
 
-size_t huffman_freq_table_get(HuffmanFreqTable const *hft, uint8_t ch) {
-    return hft->entries[ch].freq;
-}
-
-int huffman_freq_table_sort_fn(void const *a, void const *b) {
-    return (int) ((HuffmanFreqTableEntry const *) b)->freq -
-           (int) ((HuffmanFreqTableEntry const *) a)->freq;
-}
-
-HuffmanSortedFreqTable huffman_freq_table_sort(HuffmanFreqTable table) {
+void huffman_freq_queue_sort(HuffmanFreqQueue *hfq) {
     qsort(
-        table.entries,
-        256,
-        sizeof(HuffmanFreqTableEntry),
-        huffman_freq_table_sort_fn);
-    return *(HuffmanSortedFreqTable *) &table;
+        hfq->queue, 256, sizeof(HuffmanTreeNode *), huffman_freq_queue_sort_fn);
 }
 
-HuffmanTreeNode *huffman_tree_create(FileBuffer const *file_buffer) {
-    HuffmanSortedFreqTable sorted_freq_table;
-    {
-        HuffmanFreqTable freq_table;
-        huffman_freq_table_init(&freq_table);
-        for (size_t i = 0; i < file_buffer->len; i++) {
-            huffman_freq_table_inc(&freq_table, file_buffer->buf[i]);
-        }
-        sorted_freq_table = huffman_freq_table_sort(freq_table);
+void huffman_freq_queue_init(
+    HuffmanFreqQueue *hfq, FileBuffer const *file_buffer) {
+    for (int i = 0; i < file_buffer->len; ++i) {
+        char ch = file_buffer->buf[i];
+        hfq->node_arena[ch].freq++;
     }
+    huffman_freq_queue_sort(hfq);
 
     // debug
-    for (size_t i = 0; i < 256; i++) {
-        size_t freq = sorted_freq_table.entries[i].freq;
-        if (freq > 0) {
-            printf(
-                "%lu counts of '%c'\n", freq, sorted_freq_table.entries[i].ch);
+    for (int i = 0; i < 256; ++i) {
+        HuffmanTreeNode *entry = hfq->queue[i];
+        if (entry->freq > 0) {
+            printf("%lu counts of '%c'\n", entry->freq, entry->character);
         }
     }
 
