@@ -6,4 +6,6 @@ set(CMAKE_C_STANDARD_REQUIRED ON)
 
 add_executable(leben_compression src/main.c
         src/bitmap.c
-        src/bitmap.h)
+        src/bitmap.h
+        src/huffman.c
+        src/huffman.h)
