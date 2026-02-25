@@ -45,4 +45,5 @@ HuffmanTreeBuilder *huffman_tree_builder_create(FileBuffer const *file_buffer);
 
 void huffman_tree_builder_destroy(HuffmanTreeBuilder *htb);
 
-void huffman_tree_builder_write_tree(HuffmanTreeBuilder const *htb, FILE *file);
+int huffman_tree_builder_write_tree(
+    HuffmanTreeBuilder const *htb, FileWriteBuffer *buf);

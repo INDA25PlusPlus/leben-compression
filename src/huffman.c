@@ -45,7 +45,7 @@ void register_bit_sequences(
     switch (node->node_type) {
     case LEAF:
         char ch = node->character;
-        if (bit_stack->size == 0) {
+        if (bit_stack->len == 0) {
             // special case where only one type of character is present
             htb->bit_sequences[ch] = bitmap_create(1);
         } else {
@@ -53,18 +53,18 @@ void register_bit_sequences(
         }
         break;
     case BRANCH:
-        bitmap_resize(bit_stack, bit_stack->size + 1);
+        bitmap_resize(bit_stack, bit_stack->len + 1);
 
         // push a 0
-        bitmap_set(bit_stack, bit_stack->size - 1, false);
+        bitmap_set(bit_stack, bit_stack->len - 1, false);
         register_bit_sequences(htb, node->left_child, bit_stack);
 
         // push a 1
-        bitmap_set(bit_stack, bit_stack->size - 1, false);
+        bitmap_set(bit_stack, bit_stack->len - 1, false);
         register_bit_sequences(htb, node->right_child, bit_stack);
 
         // pop
-        bitmap_resize(bit_stack, bit_stack->size - 1);
+        bitmap_resize(bit_stack, bit_stack->len - 1);
         break;
     }
 }
@@ -132,20 +132,30 @@ void huffman_tree_builder_destroy(HuffmanTreeBuilder *htb) {
     free(htb);
 }
 
-void write_node(HuffmanTreeNode const *node, FILE *file, char depth) {
+int write_node(HuffmanTreeNode const *node, FileWriteBuffer *buf, char depth) {
+    int result;
     switch (node->node_type) {
     case LEAF:
-        fputc(depth, file);
-        fputc(node->character, file);
+        result = file_write_buffer_put(buf, depth);
+        if (result > 0)
+            return result;
+        result = file_write_buffer_put(buf, node->character);
+        if (result > 0)
+            return result;
         break;
     case BRANCH:
-        write_node(node->left_child, file, depth + 1);
-        write_node(node->right_child, file, 0);
+        result = write_node(node->left_child, buf, depth + 1);
+        if (result > 0)
+            return result;
+        result = write_node(node->right_child, buf, 0);
+        if (result > 0)
+            return result;
         break;
     }
+    return 0;
 }
 
-void huffman_tree_builder_write_tree(
-    HuffmanTreeBuilder const *htb, FILE *file) {
-    write_node(htb->queue[0].entry, file, 0);
+int huffman_tree_builder_write_tree(
+    HuffmanTreeBuilder const *htb, FileWriteBuffer *buf) {
+    return write_node(htb->queue[0].entry, buf, 0);
 }

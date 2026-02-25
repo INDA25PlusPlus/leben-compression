@@ -72,25 +72,24 @@ int main(int argc, char const *argv[]) {
     }
 
     FileBuffer inp_buffer;
-    FileBuffer outp_buffer;
+    FileWriteBuffer outp_buffer;
     file_buffer_init(&inp_buffer, inp_file);
-    file_buffer_init(&outp_buffer, outp_file);
+    file_write_buffer_init(&outp_buffer);
 
     if (strcmp(argv[1], "encode") == 0) {
         HuffmanTreeBuilder *htb = huffman_tree_builder_create(&inp_buffer);
 
-        huffman_tree_builder_write_tree(htb, outp_file);
+        huffman_tree_builder_write_tree(htb, &outp_buffer);
 
         huffman_tree_builder_destroy(htb);
-        // todo encode
-        exit(1);
     } else {
         // todo decode
         exit(1);
     }
 
     file_buffer_deinit(&inp_buffer);
-    file_buffer_deinit(&outp_buffer);
+    file_write_buffer_flush(&outp_buffer, outp_file);
+    file_write_buffer_deinit(&outp_buffer);
 
     if (fclose(inp_file)) {
         err_failed_to_close(argv[2]);

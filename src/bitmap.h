@@ -10,7 +10,7 @@
 
 typedef struct Bitmap Bitmap;
 struct Bitmap {
-    short size;
+    short len;
     char buf[BITMAP_BYTES];
 };
 

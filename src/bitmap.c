@@ -9,7 +9,7 @@
 
 Bitmap *bitmap_create(short size) {
     Bitmap *bm = malloc(sizeof(Bitmap));
-    bm->size = size;
+    bm->len = size;
     if (bm == NULL) {
         return NULL;
     }
@@ -40,11 +40,11 @@ void bitmap_set(Bitmap *bm, char index, bool value) {
 }
 
 void bitmap_resize(Bitmap *bm, short new_size) {
-    bm->size = new_size;
+    bm->len = new_size;
 }
 
 Bitmap *bitmap_clone(Bitmap *bm) {
-    Bitmap *new = bitmap_create(bm->size);
+    Bitmap *new = bitmap_create(bm->len);
     if (new == NULL) {
         return NULL;
     }
@@ -53,7 +53,7 @@ Bitmap *bitmap_clone(Bitmap *bm) {
 }
 
 void bitmap_copy_buffer(Bitmap const *bm, char *buf, size_t index) {
-    for (int i = 0; i < bm->size; i++) {
+    for (int i = 0; i < bm->len; i++) {
         set_bit_at(buf, index + i, bitmap_get(bm, i));
     }
 }
