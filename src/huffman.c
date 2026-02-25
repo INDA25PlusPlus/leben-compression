@@ -40,40 +40,49 @@ void debug_print_tree(HuffmanTreeNode *node) {
     printf(")");
 }
 
-void register_bit_sequences(
-    HuffmanTreeBuilder *htb, HuffmanTreeNode *node, Bitmap *bit_stack) {
+int register_bit_sequences(
+    HuffmanTreeBuilder *htb, HuffmanTreeNode const *node, Bitmap *bit_stack) {
     switch (node->node_type) {
     case LEAF:
-        char ch = node->character;
+        uint8_t ch = node->character;
         if (bit_stack->len == 0) {
             // special case where only one type of character is present
             htb->bit_sequences[ch] = bitmap_create(1);
         } else {
             htb->bit_sequences[ch] = bitmap_clone(bit_stack);
         }
+        if (htb->bit_sequences[ch] == NULL)
+            return 1;
         break;
     case BRANCH:
         bitmap_resize(bit_stack, bit_stack->len + 1);
 
+        int err;
+
         // push a 0
         bitmap_set(bit_stack, bit_stack->len - 1, false);
-        register_bit_sequences(htb, node->left_child, bit_stack);
+        err = register_bit_sequences(htb, node->left_child, bit_stack);
+        if (err > 0)
+            return err;
 
         // push a 1
         bitmap_set(bit_stack, bit_stack->len - 1, true);
-        register_bit_sequences(htb, node->right_child, bit_stack);
+        err = register_bit_sequences(htb, node->right_child, bit_stack);
+        if (err > 0)
+            return err;
 
         // pop
         bitmap_resize(bit_stack, bit_stack->len - 1);
         break;
     }
+    return 0;
 }
 
 HuffmanTreeBuilder *huffman_tree_builder_create(FileBuffer const *file_buffer) {
     HuffmanTreeBuilder *htb = malloc(sizeof(HuffmanTreeBuilder));
-    if (htb == NULL) {
+    if (htb == NULL)
         return NULL;
-    }
+
     for (int i = 0; i < 256; ++i) {
         htb->queue[i].entry = &htb->leaf_arena[i];
         htb->leaf_arena[i] =
@@ -82,7 +91,7 @@ HuffmanTreeBuilder *huffman_tree_builder_create(FileBuffer const *file_buffer) {
     }
     htb->len = 256;
     for (int i = 0; i < file_buffer->len; ++i) {
-        char ch = file_buffer->buf[i];
+        uint8_t ch = file_buffer->buf[i];
         htb->leaf_arena[ch].freq++;
     }
     sort_freq_queue(htb);
@@ -118,7 +127,13 @@ HuffmanTreeBuilder *huffman_tree_builder_create(FileBuffer const *file_buffer) {
     }
 
     Bitmap *bit_stack = bitmap_create(0);
-    register_bit_sequences(htb, htb->queue[0].entry, bit_stack);
+    if (bit_stack == NULL)
+        return NULL;
+
+    int err = register_bit_sequences(htb, htb->queue[0].entry, bit_stack);
+    if (err > 0)
+        return NULL;
+
     bitmap_destroy(bit_stack);
 
     return htb;
@@ -187,7 +202,7 @@ int huffman_encode(FileBuffer const *inp, FileWriteBuffer *outp) {
     }
 
     for (size_t i = 0; i < inp->len; i++) {
-        char ch = inp->buf[i];
+        uint8_t ch = inp->buf[i];
         Bitmap *bits = htb->bit_sequences[ch];
         if (bits == NULL) {
             debug_print_tree(htb->queue[0].entry);

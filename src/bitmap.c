@@ -4,10 +4,11 @@
 
 #include "bitmap.h"
 
+#include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
 
-Bitmap *bitmap_create(short size) {
+Bitmap *bitmap_create(uint16_t size) {
     Bitmap *bm = malloc(sizeof(Bitmap));
     bm->len = size;
     if (bm == NULL) {
@@ -23,23 +24,23 @@ void bitmap_destroy(Bitmap *bm) {
     free(bm);
 }
 
-bool bitmap_get(Bitmap const *bm, char index) {
+bool bitmap_get(Bitmap const *bm, uint8_t index) {
     char segment = bm->buf[index / 8];
     return (segment >> (index % 8)) & 0x1;
 }
 
-void set_bit_at(char *buf, size_t index, bool value) {
-    char *byte = &buf[index / 8];
-    char mask = 0x1 << (index % 8);
-    char value_mask = value << (index % 8);
+void set_bit_at(uint8_t *buf, size_t index, bool value) {
+    uint8_t *byte = &buf[index / 8];
+    uint8_t mask = 0x1 << (index % 8);
+    uint8_t value_mask = value << (index % 8);
     *byte = (*byte & ~mask) | value_mask;
 }
 
-void bitmap_set(Bitmap *bm, char index, bool value) {
+void bitmap_set(Bitmap *bm, uint8_t index, bool value) {
     set_bit_at(bm->buf, index, value);
 }
 
-void bitmap_resize(Bitmap *bm, short new_size) {
+void bitmap_resize(Bitmap *bm, uint16_t new_size) {
     bm->len = new_size;
 }
 
@@ -52,7 +53,7 @@ Bitmap *bitmap_clone(Bitmap *bm) {
     return new;
 }
 
-void bitmap_copy_buffer(Bitmap const *bm, char *buf, size_t index) {
+void bitmap_copy_buffer(Bitmap const *bm, uint8_t *buf, size_t index) {
     for (int i = 0; i < bm->len; i++) {
         set_bit_at(buf, index + i, bitmap_get(bm, i));
     }

@@ -34,6 +34,14 @@ void err_failed_to_encode(int err) {
     panic("Failed to encode file with error code %d\n", err);
 }
 
+void err_failed_to_init_buffer(int err) {
+    panic("Failed to init buffer with error code %d\n", err);
+}
+
+void err_failed_to_write_buffer(int err) {
+    panic("Failed to write to buffer with error code %d\n", err);
+}
+
 int assert_different_files(FILE *a, FILE *b) {
     struct stat a_stat;
     struct stat b_stat;
@@ -52,20 +60,20 @@ int assert_different_files(FILE *a, FILE *b) {
 }
 
 int main(int argc, char const *argv[]) {
+    int err;
+
     if (argc != 4 ||
         (strcmp(argv[1], "encode") != 0 && strcmp(argv[1], "decode") != 0)) {
         err_invalid_usage();
     }
 
     FILE *inp_file = fopen(argv[2], "r");
-    if (inp_file == NULL) {
+    if (inp_file == NULL)
         err_failed_to_open(argv[2]);
-    }
 
     FILE *outp_file = fopen(argv[3], "w");
-    if (outp_file == NULL) {
+    if (outp_file == NULL)
         err_failed_to_open(argv[3]);
-    }
 
     int different_files = assert_different_files(inp_file, outp_file);
     if (different_files == 1) {
@@ -76,30 +84,33 @@ int main(int argc, char const *argv[]) {
 
     FileBuffer inp_buffer;
     FileWriteBuffer outp_buffer;
-    file_buffer_init(&inp_buffer, inp_file);
-    file_write_buffer_init(&outp_buffer);
+    err = file_buffer_init(&inp_buffer, inp_file);
+    if (err > 0)
+        err_failed_to_init_buffer(err);
+    err = file_write_buffer_init(&outp_buffer);
+    if (err > 0)
+        err_failed_to_init_buffer(err);
 
     if (strcmp(argv[1], "encode") == 0) {
         int err = huffman_encode(&inp_buffer, &outp_buffer);
-        if (err > 0) {
+        if (err > 0)
             err_failed_to_encode(err);
-        }
     } else {
         // todo decode
         exit(1);
     }
 
     file_buffer_deinit(&inp_buffer);
-    file_write_buffer_flush(&outp_buffer, outp_file);
+    err = file_write_buffer_flush(&outp_buffer, outp_file);
+    if (err > 0)
+        err_failed_to_write_buffer(err);
     file_write_buffer_deinit(&outp_buffer);
 
-    if (fclose(inp_file)) {
+    if (fclose(inp_file))
         err_failed_to_close(argv[2]);
-    }
 
-    if (fclose(outp_file)) {
+    if (fclose(outp_file))
         err_failed_to_close(argv[3]);
-    }
 
     return 0;
 }

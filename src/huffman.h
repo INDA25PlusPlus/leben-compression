@@ -19,7 +19,7 @@ struct HuffmanTreeNode {
     size_t freq;
     HuffmanNodeType node_type;
     union {
-        unsigned char character;
+        uint8_t character;
         struct {
             HuffmanTreeNode *left_child;
             HuffmanTreeNode *right_child;
@@ -46,9 +46,6 @@ typedef struct {
 HuffmanTreeBuilder *huffman_tree_builder_create(FileBuffer const *file_buffer);
 
 void huffman_tree_builder_destroy(HuffmanTreeBuilder *htb);
-
-int huffman_tree_builder_write_tree(
-    HuffmanTreeBuilder const *htb, FileWriteBuffer *buf);
 
 int huffman_encode(FileBuffer const *inp, FileWriteBuffer *outp);
 
