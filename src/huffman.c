@@ -131,3 +131,21 @@ void huffman_tree_builder_destroy(HuffmanTreeBuilder *htb) {
     }
     free(htb);
 }
+
+void write_node(HuffmanTreeNode const *node, FILE *file, char depth) {
+    switch (node->node_type) {
+    case LEAF:
+        fputc(depth, file);
+        fputc(node->character, file);
+        break;
+    case BRANCH:
+        write_node(node->left_child, file, depth + 1);
+        write_node(node->right_child, file, 0);
+        break;
+    }
+}
+
+void huffman_tree_builder_write_tree(
+    HuffmanTreeBuilder const *htb, FILE *file) {
+    write_node(htb->queue[0].entry, file, 0);
+}

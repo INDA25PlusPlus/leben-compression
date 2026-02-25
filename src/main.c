@@ -77,9 +77,11 @@ int main(int argc, char const *argv[]) {
     file_buffer_init(&outp_buffer, outp_file);
 
     if (strcmp(argv[1], "encode") == 0) {
-        HuffmanTreeBuilder *hfq = huffman_tree_builder_create(&inp_buffer);
+        HuffmanTreeBuilder *htb = huffman_tree_builder_create(&inp_buffer);
 
-        huffman_tree_builder_destroy(hfq);
+        huffman_tree_builder_write_tree(htb, outp_file);
+
+        huffman_tree_builder_destroy(htb);
         // todo encode
         exit(1);
     } else {
