@@ -22,7 +22,7 @@ bool bitmap_get(Bitmap const *bm, char index);
 
 void bitmap_set(Bitmap *bm, char index, bool value);
 
-void bitmap_set_size(Bitmap *bm, short new_size);
+void bitmap_resize(Bitmap *bm, short new_size);
 
 Bitmap *bitmap_clone(Bitmap *bm);
 

@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include "bitmap.h"
 #include "io.h"
 
 typedef enum {
@@ -36,9 +37,10 @@ typedef struct {
     // so in the max case, we will have 511 nodes + 1 reference to the top node.
     HuffmanFreqQueueEntry queue[256];
     HuffmanTreeNode leaf_arena[256];
+    Bitmap *bit_sequences[256];
     size_t len;
-} HuffmanFreqQueue;
+} HuffmanTreeBuilder;
 
-HuffmanFreqQueue *huffman_freq_queue_create(FileBuffer const *file_buffer);
+HuffmanTreeBuilder *huffman_tree_builder_create(FileBuffer const *file_buffer);
 
-void huffman_freq_queue_destroy(HuffmanFreqQueue *hfq);
+void huffman_tree_builder_destroy(HuffmanTreeBuilder *htb);

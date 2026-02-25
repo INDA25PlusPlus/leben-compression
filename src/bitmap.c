@@ -39,7 +39,7 @@ void bitmap_set(Bitmap *bm, char index, bool value) {
     set_bit_at(bm->buf, index, value);
 }
 
-void bitmap_set_size(Bitmap *bm, short new_size) {
+void bitmap_resize(Bitmap *bm, short new_size) {
     bm->size = new_size;
 }
 
