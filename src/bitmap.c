@@ -6,25 +6,44 @@
 
 #include <stdlib.h>
 
-void bitmap_init(Bitmap *bitmap, size_t size) {
-    bitmap->size = size;
-    // ceil(size / 64) * 8
-    size_t buf_size = (size + 63) / 64 * sizeof(uint64_t);
-    bitmap->buf = malloc(buf_size);
+Bitmap *bitmap_create(short size) {
+    Bitmap *bm = malloc(sizeof(Bitmap));
+    bm->size = size;
+    if (bm == NULL) {
+        return NULL;
+    }
+    for (int i = 0; i < BITMAP_BYTES; ++i) {
+        bm->buf[i] = 0;
+    }
+    return bm;
 }
 
-void bitmap_deinit(Bitmap *bitmap) {
-    free(bitmap->buf);
-    bitmap->buf = NULL;
+void bitmap_destroy(Bitmap *bm) {
+    free(bm);
 }
 
-bool bitmap_get(Bitmap const *bitmap, size_t index) {
-    uint64_t segment = bitmap->buf[index / 64];
-    return (segment >> (index % 64)) & 0x1;
+bool bitmap_get(Bitmap const *bm, char index) {
+    char segment = bm->buf[index / 8];
+    return (segment >> (index % 8)) & 0x1;
 }
 
-void bitmap_set(Bitmap *bitmap, size_t index, bool val) {
-    uint64_t *segment = &bitmap->buf[index / 64];
-    uint64_t mask = val << (index % 64);
-    *segment = *segment ^ (*segment ^ mask);
+void set_bit_at(char *buf, size_t index, bool value) {
+    char *byte = &buf[index / 8];
+    char mask = 0x1 << (index % 8);
+    char value_mask = value << (index % 8);
+    *byte = (*byte & ~mask) | value_mask;
+}
+
+void bitmap_set(Bitmap *bm, char index, bool value) {
+    set_bit_at(bm->buf, index, value);
+}
+
+void bitmap_set_size(Bitmap *bm, short new_size) {
+    bm->size = new_size;
+}
+
+void bitmap_copy(Bitmap const *bm, char *buf, size_t index) {
+    for (int i = 0; i < bm->size; i++) {
+        set_bit_at(buf, index + i, bitmap_get(bm, i));
+    }
 }

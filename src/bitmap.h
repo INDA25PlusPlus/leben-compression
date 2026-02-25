@@ -5,18 +5,23 @@
 #pragma once
 #include <stdbool.h>
 #include <stddef.h>
-#include <stdint.h>
+
+#define BITMAP_BYTES 32
 
 typedef struct Bitmap Bitmap;
 struct Bitmap {
-    size_t size;
-    uint64_t *buf;
+    short size;
+    char buf[BITMAP_BYTES];
 };
 
-void bitmap_init(Bitmap *bitmap, size_t size);
+Bitmap *bitmap_create(short size);
 
-void bitmap_deinit(Bitmap *bitmap);
+void bitmap_destroy(Bitmap *bm);
 
-bool bitmap_get(Bitmap const *bitmap, size_t index);
+bool bitmap_get(Bitmap const *bm, char index);
 
-void bitmap_set(Bitmap *bitmap, size_t index, bool val);
+void bitmap_set(Bitmap *bm, char index, bool value);
+
+void bitmap_set_size(Bitmap *bm, short new_size);
+
+void bitmap_copy(Bitmap const *bm, char *buf, size_t start_index);
