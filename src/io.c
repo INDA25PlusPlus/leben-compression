@@ -51,9 +51,9 @@ int file_write_buffer_grow(FileWriteBuffer *fwb) {
 
 int file_write_buffer_ensure_capacity(FileWriteBuffer *fwb, size_t capacity) {
     while (fwb->capacity < capacity) {
-        int result = file_write_buffer_grow(fwb);
-        if (result > 0) {
-            return result;
+        int err = file_write_buffer_grow(fwb);
+        if (err > 0) {
+            return err;
         }
     }
     return 0;
@@ -62,9 +62,9 @@ int file_write_buffer_ensure_capacity(FileWriteBuffer *fwb, size_t capacity) {
 int file_write_buffer_put(FileWriteBuffer *fwb, char byte) {
     // if in the middle of writing bits, truncate the last byte
     size_t index = fwb->bit_index / 8;
-    int result = file_write_buffer_ensure_capacity(fwb, index + 1);
-    if (result > 0) {
-        return result;
+    int err = file_write_buffer_ensure_capacity(fwb, index + 1);
+    if (err > 0) {
+        return err;
     }
     fwb->buf[index] = byte;
     fwb->bit_index = (index + 1) * 8;
@@ -81,6 +81,7 @@ int file_write_buffer_write(FileWriteBuffer *fwb, char *bytes, size_t len) {
 }
 
 int file_write_buffer_write_string(FileWriteBuffer *fwb, char *bytes) {
+
     for (size_t i = 0; bytes[i] != 0x00; i++) {
         int err = file_write_buffer_put(fwb, bytes[i]);
         if (err > 0)
@@ -89,11 +90,18 @@ int file_write_buffer_write_string(FileWriteBuffer *fwb, char *bytes) {
     return 0;
 }
 
+int file_write_buffer_write_long(FileWriteBuffer *fwb, long bytes) {
+    // write little-endian
+    for (int i = 0; i < 64; i += 8) {
+        file_write_buffer_put(fwb, bytes >> i);
+    }
+}
+
 int file_write_buffer_write_bits(FileWriteBuffer *fwb, Bitmap const *bits) {
     size_t new_len = (fwb->bit_index + bits->len + 7) / 8;
-    int result = file_write_buffer_ensure_capacity(fwb, new_len);
-    if (result > 0) {
-        return result;
+    int err = file_write_buffer_ensure_capacity(fwb, new_len);
+    if (err > 0) {
+        return err;
     }
     bitmap_copy_buffer(bits, fwb->buf, fwb->bit_index);
     fwb->bit_index += bits->len;
