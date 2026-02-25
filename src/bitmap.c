@@ -5,6 +5,7 @@
 #include "bitmap.h"
 
 #include <stdlib.h>
+#include <string.h>
 
 Bitmap *bitmap_create(short size) {
     Bitmap *bm = malloc(sizeof(Bitmap));
@@ -42,7 +43,16 @@ void bitmap_set_size(Bitmap *bm, short new_size) {
     bm->size = new_size;
 }
 
-void bitmap_copy(Bitmap const *bm, char *buf, size_t index) {
+Bitmap *bitmap_clone(Bitmap *bm) {
+    Bitmap *new = bitmap_create(bm->size);
+    if (new == NULL) {
+        return NULL;
+    }
+    memcpy(new->buf, bm->buf, BITMAP_BYTES);
+    return new;
+}
+
+void bitmap_copy_buffer(Bitmap const *bm, char *buf, size_t index) {
     for (int i = 0; i < bm->size; i++) {
         set_bit_at(buf, index + i, bitmap_get(bm, i));
     }

@@ -24,4 +24,6 @@ void bitmap_set(Bitmap *bm, char index, bool value);
 
 void bitmap_set_size(Bitmap *bm, short new_size);
 
-void bitmap_copy(Bitmap const *bm, char *buf, size_t start_index);
+Bitmap *bitmap_clone(Bitmap *bm);
+
+void bitmap_copy_buffer(Bitmap const *bm, char *buf, size_t start_index);
