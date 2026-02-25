@@ -71,6 +71,24 @@ int file_write_buffer_put(FileWriteBuffer *fwb, char byte) {
     return 0;
 }
 
+int file_write_buffer_write(FileWriteBuffer *fwb, char *bytes, size_t len) {
+    for (size_t i = 0; i < len; i++) {
+        int err = file_write_buffer_put(fwb, bytes[i]);
+        if (err > 0)
+            return err;
+    }
+    return 0;
+}
+
+int file_write_buffer_write_string(FileWriteBuffer *fwb, char *bytes) {
+    for (size_t i = 0; bytes[i] != 0x00; i++) {
+        int err = file_write_buffer_put(fwb, bytes[i]);
+        if (err > 0)
+            return err;
+    }
+    return 0;
+}
+
 int file_write_buffer_write_bits(FileWriteBuffer *fwb, Bitmap const *bits) {
     size_t new_len = (fwb->bit_index + bits->len + 7) / 8;
     int result = file_write_buffer_ensure_capacity(fwb, new_len);

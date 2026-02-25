@@ -29,6 +29,10 @@ void file_write_buffer_deinit(FileWriteBuffer *fwb);
 
 int file_write_buffer_put(FileWriteBuffer *fwb, char byte);
 
+int file_write_buffer_write(FileWriteBuffer *fwb, char *bytes, size_t len);
+
+int file_write_buffer_write_string(FileWriteBuffer *fwb, char *bytes);
+
 int file_write_buffer_write_bits(FileWriteBuffer *fwb, Bitmap const *bits);
 
 int file_write_buffer_flush(FileWriteBuffer const *fwb, FILE *file);
