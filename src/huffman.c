@@ -60,7 +60,7 @@ void register_bit_sequences(
         register_bit_sequences(htb, node->left_child, bit_stack);
 
         // push a 1
-        bitmap_set(bit_stack, bit_stack->len - 1, false);
+        bitmap_set(bit_stack, bit_stack->len - 1, true);
         register_bit_sequences(htb, node->right_child, bit_stack);
 
         // pop
