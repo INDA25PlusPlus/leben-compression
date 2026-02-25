@@ -77,8 +77,7 @@ int main(int argc, char const *argv[]) {
     file_buffer_init(&outp_buffer, outp_file);
 
     if (strcmp(argv[1], "encode") == 0) {
-        HuffmanFreqQueue *hfq = huffman_freq_queue_create();
-        huffman_freq_queue_init(hfq, &inp_buffer);
+        HuffmanFreqQueue *hfq = huffman_freq_queue_create(&inp_buffer);
 
         huffman_freq_queue_destroy(hfq);
         // todo encode
