@@ -133,23 +133,23 @@ void huffman_tree_builder_destroy(HuffmanTreeBuilder *htb) {
 }
 
 int write_node(HuffmanTreeNode const *node, FileWriteBuffer *buf, char depth) {
-    int result;
+    int err;
     switch (node->node_type) {
     case LEAF:
-        result = file_write_buffer_put(buf, depth);
-        if (result > 0)
-            return result;
-        result = file_write_buffer_put(buf, node->character);
-        if (result > 0)
-            return result;
+        err = file_write_buffer_put(buf, depth);
+        if (err > 0)
+            return err;
+        err = file_write_buffer_put(buf, node->character);
+        if (err > 0)
+            return err;
         break;
     case BRANCH:
-        result = write_node(node->left_child, buf, depth + 1);
-        if (result > 0)
-            return result;
-        result = write_node(node->right_child, buf, 0);
-        if (result > 0)
-            return result;
+        err = write_node(node->left_child, buf, depth + 1);
+        if (err > 0)
+            return err;
+        err = write_node(node->right_child, buf, 0);
+        if (err > 0)
+            return err;
         break;
     }
     return 0;
@@ -158,4 +158,51 @@ int write_node(HuffmanTreeNode const *node, FileWriteBuffer *buf, char depth) {
 int huffman_tree_builder_write_tree(
     HuffmanTreeBuilder const *htb, FileWriteBuffer *buf) {
     return write_node(htb->queue[0].entry, buf, 0);
+}
+
+int huffman_encode(FileBuffer const *inp, FileWriteBuffer *outp) {
+    // = file format
+    // header: string
+    // file_size: long
+    // tree: [(byte, char)]
+    // content: [byte]
+
+    int err;
+
+    err = file_write_buffer_write_string(outp, HUFFMAN_FILE_HEADER);
+    if (err > 0)
+        return err;
+    err = file_write_buffer_write_long(outp, inp->len);
+    if (err > 0)
+        return err;
+
+    HuffmanTreeBuilder *htb = huffman_tree_builder_create(inp);
+    if (htb == NULL)
+        return 1;
+
+    err = huffman_tree_builder_write_tree(htb, outp);
+    if (err > 0) {
+        huffman_tree_builder_destroy(htb);
+        return err;
+    }
+
+    for (size_t i = 0; i < inp->len; i++) {
+        char ch = inp->buf[i];
+        Bitmap *bits = htb->bit_sequences[ch];
+        if (bits == NULL) {
+            debug_print_tree(htb->queue[0].entry);
+            printf("%hhx\n", ch);
+            huffman_tree_builder_destroy(htb);
+            return 1;
+        }
+        err = file_write_buffer_write_bits(outp, bits);
+        if (err > 0) {
+            huffman_tree_builder_destroy(htb);
+            return err;
+        }
+    }
+
+    huffman_tree_builder_destroy(htb);
+
+    return 0;
 }

@@ -7,6 +7,8 @@
 #include "bitmap.h"
 #include "io.h"
 
+#define HUFFMAN_FILE_HEADER "leben_compression"
+
 typedef enum {
     LEAF,
     BRANCH
@@ -17,7 +19,7 @@ struct HuffmanTreeNode {
     size_t freq;
     HuffmanNodeType node_type;
     union {
-        char character;
+        unsigned char character;
         struct {
             HuffmanTreeNode *left_child;
             HuffmanTreeNode *right_child;
@@ -47,3 +49,7 @@ void huffman_tree_builder_destroy(HuffmanTreeBuilder *htb);
 
 int huffman_tree_builder_write_tree(
     HuffmanTreeBuilder const *htb, FileWriteBuffer *buf);
+
+int huffman_encode(FileBuffer const *inp, FileWriteBuffer *outp);
+
+int huffman_decode(FileBuffer const *input, FileWriteBuffer *output);

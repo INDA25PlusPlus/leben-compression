@@ -6,29 +6,32 @@
 #include <string.h>
 #include <sys/stat.h>
 
-void err_invalid_usage() {
-    fprintf(stderr, "Usage:\nEXE <encode|decode> <input_file> <output_file>\n");
+#define panic(...)                                                             \
+    fprintf(stderr, __VA_ARGS__);                                              \
     exit(1);
+
+void err_invalid_usage() {
+    panic("Usage:\nEXE <encode|decode> <input_file> <output_file>\n");
 }
 
 void err_failed_to_open(char const *path) {
-    fprintf(stderr, "Failed to open '%s'\n", path);
-    exit(1);
+    panic("Failed to open '%s'\n", path);
 }
 
 void err_failed_to_stat(char const *path) {
-    fprintf(stderr, "Failed to stat '%s'\n", path);
-    exit(1);
+    panic("Failed to stat '%s'\n", path);
 }
 
 void err_same_input_output() {
-    fprintf(stderr, "'input' and 'output' may not be the same file\n");
-    exit(1);
+    panic("'input' and 'output' may not be the same file\n");
 }
 
 void err_failed_to_close(char const *path) {
-    fprintf(stderr, "Failed to close '%s'\n", path);
-    exit(1);
+    panic("Failed to close '%s'\n", path);
+}
+
+void err_failed_to_encode(int err) {
+    panic("Failed to encode file with error code %d\n", err);
 }
 
 int assert_different_files(FILE *a, FILE *b) {
@@ -77,11 +80,10 @@ int main(int argc, char const *argv[]) {
     file_write_buffer_init(&outp_buffer);
 
     if (strcmp(argv[1], "encode") == 0) {
-        HuffmanTreeBuilder *htb = huffman_tree_builder_create(&inp_buffer);
-
-        huffman_tree_builder_write_tree(htb, &outp_buffer);
-
-        huffman_tree_builder_destroy(htb);
+        int err = huffman_encode(&inp_buffer, &outp_buffer);
+        if (err > 0) {
+            err_failed_to_encode(err);
+        }
     } else {
         // todo decode
         exit(1);
