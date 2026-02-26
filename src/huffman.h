@@ -43,10 +43,10 @@ typedef struct {
     size_t len;
 } HuffmanTreeBuilder;
 
-HuffmanTreeBuilder *huffman_tree_builder_create(FileBuffer const *file_buffer);
+HuffmanTreeBuilder *huffman_tree_builder_create(FileReader const *file_buffer);
 
 void huffman_tree_builder_destroy(HuffmanTreeBuilder *htb);
 
-int huffman_encode(FileBuffer const *inp, FileWriteBuffer *outp);
+int huffman_encode(FileReader const *inp, FileWriter *outp);
 
-int huffman_decode(FileBuffer const *input, FileWriteBuffer *output);
+int huffman_decode(FileReader const *inp, FileWriter *outp);

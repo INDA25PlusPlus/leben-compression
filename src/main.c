@@ -82,12 +82,12 @@ int main(int argc, char const *argv[]) {
         err_failed_to_stat(argv[3]);
     }
 
-    FileBuffer inp_buffer;
-    FileWriteBuffer outp_buffer;
-    err = file_buffer_init(&inp_buffer, inp_file);
+    FileReader inp_buffer;
+    FileWriter outp_buffer;
+    err = file_reader_init(&inp_buffer, inp_file);
     if (err > 0)
         err_failed_to_init_buffer(err);
-    err = file_write_buffer_init(&outp_buffer);
+    err = file_writer_init(&outp_buffer);
     if (err > 0)
         err_failed_to_init_buffer(err);
 
@@ -100,11 +100,11 @@ int main(int argc, char const *argv[]) {
         exit(1);
     }
 
-    file_buffer_deinit(&inp_buffer);
-    err = file_write_buffer_flush(&outp_buffer, outp_file);
+    file_reader_deinit(&inp_buffer);
+    err = file_writer_flush(&outp_buffer, outp_file);
     if (err > 0)
         err_failed_to_write_buffer(err);
-    file_write_buffer_deinit(&outp_buffer);
+    file_writer_deinit(&outp_buffer);
 
     if (fclose(inp_file))
         err_failed_to_close(argv[2]);

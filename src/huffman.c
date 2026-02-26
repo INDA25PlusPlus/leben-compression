@@ -78,7 +78,7 @@ int register_bit_sequences(
     return 0;
 }
 
-HuffmanTreeBuilder *huffman_tree_builder_create(FileBuffer const *file_buffer) {
+HuffmanTreeBuilder *huffman_tree_builder_create(FileReader const *file_buffer) {
     HuffmanTreeBuilder *htb = malloc(sizeof(HuffmanTreeBuilder));
     if (htb == NULL)
         return NULL;
@@ -147,14 +147,14 @@ void huffman_tree_builder_destroy(HuffmanTreeBuilder *htb) {
     free(htb);
 }
 
-int write_node(HuffmanTreeNode const *node, FileWriteBuffer *buf, char depth) {
+int write_node(HuffmanTreeNode const *node, FileWriter *buf, char depth) {
     int err;
     switch (node->node_type) {
     case LEAF:
-        err = file_write_buffer_put(buf, depth);
+        err = file_writer_put(buf, depth);
         if (err > 0)
             return err;
-        err = file_write_buffer_put(buf, node->character);
+        err = file_writer_put(buf, node->character);
         if (err > 0)
             return err;
         break;
@@ -171,11 +171,11 @@ int write_node(HuffmanTreeNode const *node, FileWriteBuffer *buf, char depth) {
 }
 
 int huffman_tree_builder_write_tree(
-    HuffmanTreeBuilder const *htb, FileWriteBuffer *buf) {
+    HuffmanTreeBuilder const *htb, FileWriter *buf) {
     return write_node(htb->queue[0].entry, buf, 0);
 }
 
-int huffman_encode(FileBuffer const *inp, FileWriteBuffer *outp) {
+int huffman_encode(FileReader const *inp, FileWriter *outp) {
     // = file format
     // header: string
     // file_size: long
@@ -184,10 +184,10 @@ int huffman_encode(FileBuffer const *inp, FileWriteBuffer *outp) {
 
     int err;
 
-    err = file_write_buffer_write_string(outp, HUFFMAN_FILE_HEADER);
+    err = file_writer_write_string(outp, (uint8_t *) HUFFMAN_FILE_HEADER);
     if (err > 0)
         return err;
-    err = file_write_buffer_write_long(outp, inp->len);
+    err = file_writer_write_long(outp, inp->len);
     if (err > 0)
         return err;
 
@@ -210,7 +210,7 @@ int huffman_encode(FileBuffer const *inp, FileWriteBuffer *outp) {
             huffman_tree_builder_destroy(htb);
             return 1;
         }
-        err = file_write_buffer_write_bits(outp, bits);
+        err = file_writer_write_bits(outp, bits);
         if (err > 0) {
             huffman_tree_builder_destroy(htb);
             return err;

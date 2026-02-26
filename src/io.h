@@ -10,31 +10,32 @@
 
 typedef struct {
     uint8_t *buf;
+    size_t bit_index;
     long len;
-} FileBuffer;
+} FileReader;
 
-int file_buffer_init(FileBuffer *file_buffer, FILE *file);
+int file_reader_init(FileReader *fr, FILE *file);
 
-void file_buffer_deinit(FileBuffer *file_buffer);
+void file_reader_deinit(FileReader *fr);
 
 typedef struct {
     uint8_t *buf;
     size_t bit_index;
     size_t capacity;
-} FileWriteBuffer;
+} FileWriter;
 
-int file_write_buffer_init(FileWriteBuffer *fwb);
+int file_writer_init(FileWriter *fw);
 
-void file_write_buffer_deinit(FileWriteBuffer *fwb);
+void file_writer_deinit(FileWriter *fw);
 
-int file_write_buffer_put(FileWriteBuffer *fwb, uint8_t byte);
+int file_writer_put(FileWriter *fw, uint8_t byte);
 
-int file_write_buffer_write(FileWriteBuffer *fwb, uint8_t *bytes, size_t len);
+int file_writer_write(FileWriter *fw, uint8_t *bytes, size_t len);
 
-int file_write_buffer_write_string(FileWriteBuffer *fwb, uint8_t *bytes);
+int file_writer_write_string(FileWriter *fw, uint8_t *bytes);
 
-int file_write_buffer_write_long(FileWriteBuffer *fwb, uint64_t bytes);
+int file_writer_write_long(FileWriter *fw, uint64_t bytes);
 
-int file_write_buffer_write_bits(FileWriteBuffer *fwb, Bitmap const *bits);
+int file_writer_write_bits(FileWriter *fw, Bitmap const *bits);
 
-int file_write_buffer_flush(FileWriteBuffer const *fwb, FILE *file);
+int file_writer_flush(FileWriter const *fw, FILE *file);
