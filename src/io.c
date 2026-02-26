@@ -53,6 +53,7 @@ int file_reader_read_bit(FileReader *fr, bool *out) {
         return 1;
     uint8_t byte = fr->buf[byte_index];
     *out = (byte >> (fr->bit_index % 8)) & 0x1;
+    fr->bit_index++;
     return 0;
 }
 
