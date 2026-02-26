@@ -171,6 +171,12 @@ int file_writer_write_bits(FileWriter *fw, Bitmap const *bits) {
     return 0;
 }
 
+void file_writer_trim_end(FileWriter *fw) {
+    size_t byte_index = fw->bit_index / 8;
+    uint8_t mask = (0x1 << (fw->bit_index % 8)) - 1;
+    fw->buf[byte_index] &= mask;
+}
+
 int file_writer_flush(FileWriter const *fw, FILE *file) {
     size_t len = (fw->bit_index + 7) / 8;
     size_t written_bytes = fwrite(fw->buf, 1, len, file);

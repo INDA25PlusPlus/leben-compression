@@ -48,4 +48,6 @@ int file_writer_write_long(FileWriter *fw, uint64_t bytes);
 
 int file_writer_write_bits(FileWriter *fw, Bitmap const *bits);
 
+void file_writer_trim_end(FileWriter *fw);
+
 int file_writer_flush(FileWriter const *fw, FILE *file);

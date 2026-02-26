@@ -214,6 +214,8 @@ int huffman_encode(FileReader const *inp, FileWriter *outp) {
         }
     }
 
+    file_writer_trim_end(outp);
+
     huffman_tree_builder_destroy(htb);
 
     return 0;
