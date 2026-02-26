@@ -24,7 +24,7 @@ int file_reader_read_long(FileReader *fr, uint64_t *out);
 
 int file_reader_read_bit(FileReader *fr, bool *out);
 
-int file_reader_cmp_string(FileReader *fr, uint8_t const *string);
+int file_reader_cmp_string(FileReader *fr, char const *string);
 
 int file_reader_test_end(FileReader *fr);
 

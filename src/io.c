@@ -57,7 +57,7 @@ int file_reader_read_bit(FileReader *fr, bool *out) {
     return 0;
 }
 
-int file_reader_cmp_string(FileReader *fr, uint8_t const *string) {
+int file_reader_cmp_string(FileReader *fr, char const *string) {
     // skip partially started bit
     size_t byte_index = (fr->bit_index + 7) / 8;
     size_t i = 0;
