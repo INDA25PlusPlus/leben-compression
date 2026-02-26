@@ -11,12 +11,20 @@
 typedef struct {
     uint8_t *buf;
     size_t bit_index;
-    long len;
+    size_t len;
 } FileReader;
 
 int file_reader_init(FileReader *fr, FILE *file);
 
 void file_reader_deinit(FileReader *fr);
+
+int file_reader_read(FileReader *fr, uint8_t *out);
+
+int file_reader_read_long(FileReader *fr, uint64_t *out);
+
+int file_reader_read_bit(FileReader *fr, bool *out);
+
+int file_reader_cmp_string(FileReader *fr, uint8_t const *string);
 
 typedef struct {
     uint8_t *buf;

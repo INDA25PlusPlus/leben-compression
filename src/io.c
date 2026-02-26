@@ -23,6 +23,51 @@ void file_reader_deinit(FileReader *fr) {
     fr->buf = NULL;
 }
 
+int file_reader_read(FileReader *fr, uint8_t *out) {
+    // skip partially started bit
+    size_t byte_index = (fr->bit_index + 7) / 8;
+    if (fr->len <= byte_index)
+        return 1;
+    *out = fr->buf[byte_index];
+    fr->bit_index = 8 * (byte_index + 1);
+    return 0;
+}
+
+int file_reader_read_long(FileReader *fr, uint64_t *out) {
+    uint64_t result = 0;
+    // read little-endian
+    for (int i = 0; i < 64; i += 8) {
+        uint8_t byte = 0;
+        int err = file_reader_read(fr, &byte);
+        if (err > 0)
+            return err;
+        result |= byte << i;
+    }
+    *out = result;
+    return 0;
+}
+
+int file_reader_read_bit(FileReader *fr, bool *out) {
+    size_t byte_index = fr->bit_index / 8;
+    if (fr->len <= byte_index)
+        return 1;
+    uint8_t byte = fr->buf[byte_index];
+    *out = (byte >> (fr->bit_index % 8)) & 0x1;
+    return 0;
+}
+
+int file_reader_cmp_string(FileReader *fr, uint8_t const *string) {
+    // skip partially started bit
+    size_t byte_index = (fr->bit_index + 7) / 8;
+    size_t i = 0;
+    for (; string[i] != 0x00; i++) {
+        if (fr->len <= byte_index + i)
+            return 1;
+    }
+    fr->bit_index = 8 * (byte_index + i);
+    return 0;
+}
+
 int file_writer_init(FileWriter *fw) {
     fw->buf = malloc(16);
     if (fw->buf == NULL)
@@ -80,7 +125,6 @@ int file_writer_write(FileWriter *fw, uint8_t *bytes, size_t len) {
 }
 
 int file_writer_write_string(FileWriter *fw, uint8_t *bytes) {
-
     for (size_t i = 0; bytes[i] != 0x00; i++) {
         int err = file_writer_put(fw, bytes[i]);
         if (err > 0)
