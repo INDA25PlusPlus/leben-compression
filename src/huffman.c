@@ -339,7 +339,6 @@ int huffman_decode(FileReader *inp, FileWriter *outp) {
                 destroy_tree(tree);
                 return err;
             }
-            file_writer_put(outp, tree->character);
         }
         while (current_node->node_type == BRANCH) {
             bool bit;
