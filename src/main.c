@@ -34,6 +34,10 @@ void err_failed_to_encode(int err) {
     panic("Failed to encode file with error code %d\n", err);
 }
 
+void err_failed_to_decode(int err) {
+    panic("Failed to decode file with error code %d\n", err);
+}
+
 void err_failed_to_init_buffer(int err) {
     panic("Failed to init buffer with error code %d\n", err);
 }
@@ -96,8 +100,9 @@ int main(int argc, char const *argv[]) {
         if (err > 0)
             err_failed_to_encode(err);
     } else {
-        // todo decode
-        exit(1);
+        int err = huffman_decode(&inp_buffer, &outp_buffer);
+        if (err > 0)
+            err_failed_to_decode(err);
     }
 
     file_reader_deinit(&inp_buffer);

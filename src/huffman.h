@@ -49,4 +49,4 @@ void huffman_tree_builder_destroy(HuffmanTreeBuilder *htb);
 
 int huffman_encode(FileReader const *inp, FileWriter *outp);
 
-int huffman_decode(FileReader const *inp, FileWriter *outp);
+int huffman_decode(FileReader *inp, FileWriter *outp);

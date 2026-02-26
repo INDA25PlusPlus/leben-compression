@@ -170,8 +170,7 @@ int write_node(HuffmanTreeNode const *node, FileWriter *buf, char depth) {
     return 0;
 }
 
-int huffman_tree_builder_write_tree(
-    HuffmanTreeBuilder const *htb, FileWriter *buf) {
+int write_tree(HuffmanTreeBuilder const *htb, FileWriter *buf) {
     return write_node(htb->queue[0].entry, buf, 0);
 }
 
@@ -195,7 +194,7 @@ int huffman_encode(FileReader const *inp, FileWriter *outp) {
     if (htb == NULL)
         return 1;
 
-    err = huffman_tree_builder_write_tree(htb, outp);
+    err = write_tree(htb, outp);
     if (err > 0) {
         huffman_tree_builder_destroy(htb);
         return err;
@@ -205,8 +204,6 @@ int huffman_encode(FileReader const *inp, FileWriter *outp) {
         uint8_t ch = inp->buf[i];
         Bitmap *bits = htb->bit_sequences[ch];
         if (bits == NULL) {
-            debug_print_tree(htb->queue[0].entry);
-            printf("%hhx\n", ch);
             huffman_tree_builder_destroy(htb);
             return 1;
         }
@@ -219,5 +216,151 @@ int huffman_encode(FileReader const *inp, FileWriter *outp) {
 
     huffman_tree_builder_destroy(htb);
 
+    return 0;
+}
+
+HuffmanTreeNode *read_node(
+    FileReader *inp, uint8_t left_ch, size_t left_streak, int *node_limit) {
+    HuffmanTreeNode *node = malloc(sizeof(HuffmanTreeNode));
+    (*node_limit)--;
+    if (node == NULL)
+        return NULL;
+    if (node_limit < 0) {
+        free(node);
+        return NULL;
+    }
+
+    if (left_streak == 0) {
+        // freq is unused
+        *node = (HuffmanTreeNode) {.node_type = LEAF, .character = left_ch};
+        return node;
+    } else {
+        int err;
+
+        HuffmanTreeNode *left_child =
+            read_node(inp, left_ch, left_streak - 1, node_limit);
+        if (left_child == NULL) {
+            free(node);
+            return NULL;
+        }
+
+        uint8_t right_streak;
+        err = file_reader_read(inp, &right_streak);
+        if (err > 0) {
+            free(node);
+            return NULL;
+        }
+
+        uint8_t right_ch;
+        err = file_reader_read(inp, &right_ch);
+        if (err > 0) {
+            free(node);
+            return NULL;
+        }
+
+        HuffmanTreeNode *right_child =
+            read_node(inp, right_ch, right_streak, node_limit);
+        if (right_child == NULL) {
+            free(node);
+            return NULL;
+        }
+
+        // freq is unused
+        *node = (HuffmanTreeNode) {.node_type = BRANCH,
+                                   .left_child = left_child,
+                                   .right_child = right_child};
+        return node;
+    }
+}
+
+HuffmanTreeNode *read_tree(FileReader *inp) {
+    int node_limit = 511;
+
+    int err;
+
+    uint8_t right_streak;
+    err = file_reader_read(inp, &right_streak);
+    if (err > 0)
+        return NULL;
+
+    uint8_t right_ch;
+    err = file_reader_read(inp, &right_ch);
+    if (err > 0)
+        return NULL;
+
+    return read_node(inp, right_ch, right_streak, &node_limit);
+}
+
+void destroy_tree(HuffmanTreeNode *node) {
+    switch (node->node_type) {
+    case LEAF:
+        break;
+    case BRANCH:
+        destroy_tree(node->left_child);
+        destroy_tree(node->right_child);
+        break;
+    }
+    free(node);
+}
+
+int huffman_decode(FileReader *inp, FileWriter *outp) {
+    // = file format
+    // header: string
+    // file_size: long
+    // tree: [(byte, char)]
+    // content: [byte]
+
+    int err;
+
+    err = file_reader_cmp_string(inp, HUFFMAN_FILE_HEADER);
+    if (err > 0)
+        return 1;
+
+    uint64_t decoded_len;
+    err = file_reader_read_long(inp, &decoded_len);
+    if (err > 0)
+        return 1;
+
+    HuffmanTreeNode *tree = read_tree(inp);
+    if (tree == NULL)
+        return 1;
+
+    // read huffman coded data
+    for (size_t i = 0; i < decoded_len; i++) {
+        HuffmanTreeNode *current_node = tree;
+        if (tree->node_type == LEAF) {
+            // special case with only one character type
+            bool bit;
+            int err = file_reader_read_bit(inp, &bit);
+            // in this case, bit should always be 0
+            if (err > 0 || bit) {
+                destroy_tree(tree);
+                return err;
+            }
+            file_writer_put(outp, tree->character);
+        }
+        while (current_node->node_type == BRANCH) {
+            bool bit;
+            int err = file_reader_read_bit(inp, &bit);
+            if (err > 0) {
+                destroy_tree(tree);
+                return err;
+            }
+            if (bit) {
+                current_node = current_node->right_child;
+            } else {
+                current_node = current_node->left_child;
+            }
+        }
+        file_writer_put(outp, current_node->character);
+    }
+
+    err = file_reader_test_end(inp);
+    if (err > 0) {
+        destroy_tree(tree);
+        return err;
+    }
+
+    destroy_tree(tree);
     return 0;
 }
