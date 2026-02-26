@@ -26,6 +26,8 @@ int file_reader_read_bit(FileReader *fr, bool *out);
 
 int file_reader_cmp_string(FileReader *fr, uint8_t const *string);
 
+int file_reader_test_end(FileReader *fr);
+
 typedef struct {
     uint8_t *buf;
     size_t bit_index;

@@ -69,6 +69,22 @@ int file_reader_cmp_string(FileReader *fr, uint8_t const *string) {
     return 0;
 }
 
+int file_reader_test_end(FileReader *fr) {
+    size_t byte_index = (fr->bit_index + 7) / 8;
+
+    // test that reader is at end of file
+    if (byte_index != fr->len)
+        return 1;
+
+    uint8_t final_byte = fr->buf[fr->len - 1];
+
+    // test remaining bits are 0
+    if ((final_byte >> fr->bit_index % 8) != 0)
+        return 1;
+
+    return 0;
+}
+
 int file_writer_init(FileWriter *fw) {
     fw->buf = malloc(16);
     if (fw->buf == NULL)
