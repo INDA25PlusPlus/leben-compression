@@ -20,7 +20,7 @@ Before: 100.0 MB
 
 After: 52.6 MB (-47.4%)
 
-### Hamlet (Shakespear)
+### Hamlet (Shakespeare)
 
 Source: https://gist.github.com/provpup/2fc41686eab7400b796b
 
